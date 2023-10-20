@@ -2,93 +2,125 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 
-void printArray(vector < string > arr, int size) {
+void printArray(vector <string> arr) {
     cout << "array: ";
-    for (int i = 0; i < size; i++) {
-        cout << "[" << arr[i] << "] ";
+    for (const string& str : arr){
+        cout << "[" + str + "] ";
     }
     cout << endl;
 }
 
-vector < string > check(vector < string > splitted, string currentElement, int Parentthesis, string str) {
-    if (!currentElement.empty()) {
-        switch (Parentthesis) {
-        case 0:
-            splitted.push_back(currentElement);
-        case 1:
-            splitted[splitted.size() - 1] += currentElement;
-        }
-    }
+vector<string> Split(string str) {
+    int counter = 0;
+    vector<string> splitted;
 
-    if (!str.empty()) {
 
-        switch (Parentthesis) {
-        case 0:
-            splitted.push_back(str);
-        case 1:
-            splitted[splitted.size() - 1] += str;
-        }
-    }
 
     return splitted;
 }
 
-string CustomSplit(string str) {
-    vector < string > splitted;
-    string currentElement;
-    int Parentthesis = 0;
-
-    for (char character: str) {
-        if (character == '+' || character == '-' || character == '*' || character == '/') {
-             string OperatorStr(1, character);
-            splitted = check(splitted, currentElement, Parentthesis, OperatorStr);
-
-            currentElement.clear();
-        } else if (character == '(') {
-            splitted = check(splitted, currentElement, Parentthesis, "(");
-            currentElement.clear();
-
-            // splitted.push_back("(");
-            Parentthesis = 1;
-        } else if (character == ')') {
-            splitted = check(splitted, currentElement, Parentthesis, ")");
-            currentElement.clear();
-
-            // splitted.push_back(")");
-            Parentthesis = 0;
-        } else if (isdigit(character)) {
-            currentElement += character;
-        }
-    }
-
-    splitted = check(splitted, currentElement, Parentthesis, "");
-
-    printArray(splitted, splitted.size());
-    cout << "done";
-
-    return "";
+double calculate(double x, double y, string Operator) {
+    if (Operator == "+")
+        return x+y;
+    else if (Operator == "-")
+        return x-y;
+    else if (Operator == "*")
+        return x*y;
+    else if (Operator == "/")
+        return x/y;
+    else if (Operator == "//")
+        return floor(x/y);
+    else if (Operator == "%")
+        return (x/y - floor(x/y))*y;
+    else
+        throw runtime_error("Invalid operator");
 }
 
 int calc(string str) {
-    int result = 0;
-    string splitted = CustomSplit(str);
+//    find parenthesis
+    if (str.find('(') != -1) {
+        cout << "parenthesis found\n";
+    }
 
-    cout << splitted << endl;
+    int multiply = str.find('*');
+    int division = str.find('/');
+    int Plus = str.find('+');
+    int Minus = str.find('-');
 
-    // int size = sizeof(splitted) / sizeof(splitted[0]);
-    // for (int i = 0; i < size; i++) {
-    //     cout << "[" << splitted[i] << "] ";
-    // }
+    multiply = multiply == -1 ? numeric_limits<int>::max() : multiply;
+    division = division == -1 ? numeric_limits<int>::max() : division;
 
-    cout << endl;
+    if (multiply < division && multiply > 0){
+        int Lpointer = multiply-1;
+        int Rpointer = multiply+1;
+        string LeftStr = "";
+        string RightStr = "";
+        while (isdigit(str[Lpointer])){
+            LeftStr += str[Lpointer];
+            Lpointer -= 1;
+        }
+        while (isdigit(str[Rpointer])){
+            RightStr += str[Rpointer];
+            Rpointer += 1;
+        }
+        str = str.substr(0, Lpointer+1) + to_string(int(calculate(stod(LeftStr), stod(RightStr), "*"))) + str.substr(Rpointer);
+    } else if (multiply > division && division > 0){
+        int Lpointer = division-1;
+        int Rpointer = division+1;
+        string LeftStr = "";
+        string RightStr = "";
+        while (isdigit(str[Lpointer])){
+            LeftStr += str[Lpointer];
+            Lpointer -= 1;
+        }
+        while (isdigit(str[Rpointer])){
+            RightStr += str[Rpointer];
+            Rpointer += 1;
+        }
+        str = str.substr(0, Lpointer+1) + to_string(int(calculate(stod(LeftStr), stod(RightStr), "/"))) + str.substr(Rpointer);
+    } else if (Plus < Minus && Plus > 0){
+        int Lpointer = Plus-1;
+        int Rpointer = Plus+1;
+        string LeftStr = "";
+        string RightStr = "";
+        while (isdigit(str[Lpointer])){
+            LeftStr += str[Lpointer];
+            Lpointer -= 1;
+        }
+        while (isdigit(str[Rpointer])){
+            RightStr += str[Rpointer];
+            Rpointer += 1;
+        }
+        str = str.substr(0, Lpointer+1) + to_string(int(calculate(stod(LeftStr), stod(RightStr), "+"))) + str.substr(Rpointer);
+    } else if (Plus > Minus && Minus > 0){
+        int Lpointer = Minus-1;
+        int Rpointer = Minus+1;
+        string LeftStr = "";
+        string RightStr = "";
+        while (isdigit(str[Lpointer])){
+            LeftStr += str[Lpointer];
+            Lpointer -= 1;
+        }
+        while (isdigit(str[Rpointer])){
+            RightStr += str[Rpointer];
+            Rpointer += 1;
+        }
+        str = str.substr(0, Lpointer+1) + to_string(int(calculate(stod(LeftStr), stod(RightStr), "-"))) + str.substr(Rpointer);
+    }
+    if (str.find('(') || str.find('+') || str.find('-') || str.find('*') || str.find('/')) {
+        str = calc(str);
+    }
 
-    return result;
+    cout << str;
+
+    return stoi(str);
 }
 
 int main() {
     // cout << calc("(((((10 + 5) * 2) - 7) / 3) + (((12 * 4) - 2) / (7 + 1)) - ((((6 - 3) * 5) + 2) * ((9 / 3) + 1))) + (((((15 - 5) * 2) + 4) / 2) - ((10 * 3) + 2))");
-    calc("((94)*343+5435)");
+    calc("1+1+2/2+1");
 }
